@@ -1,0 +1,203 @@
+import java.util.*;
+import java.io.*;
+
+// Event class to store event details
+class Event {
+    private String name;
+    private String date;
+    private String location;
+    private String category;
+
+    public Event(String name, String date, String location, String category) {
+        this.name = name;
+        this.date = date;
+        this.location = location;
+        this.category = category;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Name: %s, Date: %s, Location: %s, Category: %s", name, date, location, category);
+    }
+}
+
+// EventPlanner class to manage events and user interface
+public class EventPlanner {
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final List<Event> events = new ArrayList<>();
+    private static final String FILE_NAME = "events.dat";
+
+    public static void main(String[] args) {
+        loadEventsFromFile();
+        while (true) {
+            System.out.println("\nEvent Planner Menu:");
+            System.out.println("1. Add an Event");
+            System.out.println("2. View All Events");
+            System.out.println("3. View Events by Category");
+            System.out.println("4. View Events by Date");
+            System.out.println("5. Sort Events by Date");
+            System.out.println("6. Delete an Event");
+            System.out.println("7. Save Events to File");
+            System.out.println("8. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();  // Consume newline character
+
+            switch (choice) {
+                case 1:
+                    addEvent();
+                    break;
+                case 2:
+                    viewAllEvents();
+                    break;
+                case 3:
+                    viewEventsByCategory();
+                    break;
+                case 4:
+                    viewEventsByDate();
+                    break;
+                case 5:
+                    sortEventsByDate();
+                    break;
+                case 6:
+                    deleteEvent();
+                    break;
+                case 7:
+                    saveEventsToFile();
+                    break;
+                case 8:
+                    System.out.println("Exiting...");
+                    saveEventsToFile();
+                    return;
+                default:
+                    System.out.println("Invalid choice! Please try again.");
+            }
+        }
+    }
+
+    private static void addEvent() {
+        System.out.print("Enter event name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter event date (e.g., 2024-12-25): ");
+        String date = scanner.nextLine();
+        System.out.print("Enter event location: ");
+        String location = scanner.nextLine();
+        System.out.print("Enter event category (e.g., Birthday, Wedding, Conference): ");
+        String category = scanner.nextLine();
+
+        Event event = new Event(name, date, location, category);
+        events.add(event);
+        System.out.println("Event added successfully!");
+    }
+
+    private static void viewAllEvents() {
+        if (events.isEmpty()) {
+            System.out.println("No events found.");
+        } 
+        else {
+            System.out.println("\nList of All Events:");
+            for (int i = 0; i < events.size(); i++) {
+                System.out.println((i + 1) + ". " + events.get(i));
+            }
+        }
+    }
+
+    private static void viewEventsByCategory() {
+        System.out.print("Enter category to filter (e.g., Birthday, Wedding): ");
+        String category = scanner.nextLine();
+        boolean found = false;
+
+        System.out.println("\nEvents in Category: " + category);
+        for (Event event : events) {
+            if (event.getCategory().equalsIgnoreCase(category)) {
+                System.out.println(event);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No events found in this category.");
+        }
+    }
+
+    private static void viewEventsByDate() {
+        System.out.print("Enter date to filter events (e.g., 2024-12-25): ");
+        String date = scanner.nextLine();
+        boolean found = false;
+
+        System.out.println("\nEvents on Date: " + date);
+        for (Event event : events) {
+            if (event.getDate().equals(date)) {
+                System.out.println(event);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No events found on this date.");
+        }
+    }
+
+    private static void sortEventsByDate() {
+        events.sort(Comparator.comparing(Event::getDate));
+        System.out.println("Events sorted by date.");
+    }
+
+    private static void deleteEvent() {
+        if (events.isEmpty()) {
+            System.out.println("No events to delete.");
+            return;
+        }
+
+        System.out.print("Enter the event number to delete: ");
+        int eventNumber = scanner.nextInt();
+        scanner.nextLine(); // Consume newline character
+
+        if (eventNumber < 1 || eventNumber > events.size()) {
+            System.out.println("Invalid event number!");
+        } 
+        else {
+            events.remove(eventNumber - 1);
+            System.out.println("Event deleted successfully!");
+        }
+    }
+
+    private static void saveEventsToFile() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
+            out.writeObject(events);
+            System.out.println("Events saved to file.");
+        } 
+        catch (IOException e) {
+            System.out.println("Error saving events to file: " + e.getMessage());
+        }
+    }
+
+    private static void loadEventsFromFile() 
+        {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(FILE_NAME))) {
+            events.clear();
+            List<Event> loadedEvents = (List<Event>) in.readObject();
+            events.addAll(loadedEvents);
+            System.out.println("Events loaded from file.");
+        } 
+        catch (IOException | ClassNotFoundException e) {
+            System.out.println("No saved events found, starting fresh.");
+        }
+    }
+}
